@@ -102,7 +102,7 @@ Future versions can incorporate image/video analysis for discrepancy claims. Cus
 - Prepare a short presentation highlighting:
   - Feasibility: realistic architecture using off-the-shelf components.
   - AI & CX quality: smooth call flow and instant confirmation.
-  - Operational impact: manual work saved by proactive swaps.
+  - Operational impact: manual work saved by proactive swaps. Calculate saved costs estimate(!!project assessment requirement!!)
   - Completeness: coverage across pre-picking, during-picking, and post-delivery.
 - Record or live-demo an AI call on speaker.
 - Show backend view: n8n workflow, model outputs (e.g., “Item X: 90% stockout risk”), and selected substitute.
