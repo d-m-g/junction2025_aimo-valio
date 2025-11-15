@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:6000/warehouse
+    username: warehouse_user
+    password: warehouse_pass
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
