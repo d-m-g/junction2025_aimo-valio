@@ -1,3 +1,4 @@
 Data/*
 .kiro
 .DS_Store
+.env
