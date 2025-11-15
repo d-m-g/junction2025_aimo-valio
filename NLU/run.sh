@@ -23,8 +23,8 @@ fi
 # Start the server
 echo ""
 echo "🚀 Starting NLU Parser API server..."
-echo "   Server will be available at: http://localhost:5000"
-echo "   Health check: http://localhost:5000/health"
+echo "   Server will be available at: http://localhost:6060"
+echo "   Health check: http://localhost:6060/health"
 echo ""
 echo "Press Ctrl+C to stop the server"
 echo ""

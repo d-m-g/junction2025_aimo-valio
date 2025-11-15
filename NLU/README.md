@@ -78,7 +78,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-The server will start on `http://0.0.0.0:5000` (accessible at `http://localhost:5000`)
+The server will start on `http://0.0.0.0:6060` (accessible at `http://localhost:6060`)
 
 **Note**: The hybrid approach uses `scikit-learn` for semantic similarity. All dependencies are lightweight and will be installed automatically.
 

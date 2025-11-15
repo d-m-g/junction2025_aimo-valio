@@ -72,7 +72,8 @@ Future versions can incorporate image/video analysis for discrepancy claims. Cus
 
 ### 3) Build Substitution Recommendation Logic (3–4 hours)
 
-- Parse the product JSON into a structured catalog. Group by category and similar attributes; generate a mapping `{product → [sub1, sub2, sub3]}`.
+- Parse the product JSON into a structured catalog. Group by category and similar attributes; ge
+nerate a mapping `{product → [sub1, sub2, sub3]}`.
 - Implement a function to get top-N substitutes via text similarity (name/description) and category; filter by availability likelihood (based on stock/purchases).
 - Test with examples (e.g., “Valio whole milk 1L” → similar milk substitute). Prepare reusable suggestion sentences for the agent/messages.
 

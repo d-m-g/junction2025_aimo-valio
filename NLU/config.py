@@ -11,7 +11,7 @@ from typing import Dict, Optional
 DEFAULT_CONFIG = {
     'api': {
         'host': '0.0.0.0',
-        'port': 5000,
+        'port': 6060,
         'debug': False,
     },
     'cors': {

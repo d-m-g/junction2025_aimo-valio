@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Dict, List
 
 # API endpoint
-API_URL = "http://localhost:5000/nlu/parse"
+API_URL = "http://localhost:6060/nlu/parse"
 
 # Test cases with expected results
 TEST_CASES = [

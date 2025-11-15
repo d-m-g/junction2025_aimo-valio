@@ -305,6 +305,16 @@ def handle_generic_error(e: Exception):
     return jsonify(error.to_dict()), error.status_code
 
 
+@app.route('/', methods=['GET'])
+def root():
+    """Provide a simple landing response for the service root."""
+    return jsonify({
+        'service': 'nlu-parser',
+        'message': 'NLU Parser API is running. Try /health or POST /nlu/parse.',
+        'routes': ['/health', '/nlu/parse', '/nlu/pre-parse', '/nlu/post-parse', '/nlu/parse/batch']
+    }), 200
+
+
 @app.route('/health', methods=['GET'])
 def health():
     """Enhanced health check endpoint"""
@@ -647,7 +657,7 @@ def delete_session(session_id: str):
 
 if __name__ == '__main__':
     host = config.get('api.host', '0.0.0.0')
-    port = config.get('api.port', 5000)
+    port = config.get('api.port', 6060)
     debug = config.get('api.debug', False)
     
     logger.info(f"Starting NLU Parser API on {host}:{port} (debug={debug})")
