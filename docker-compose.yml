@@ -47,6 +47,15 @@ services:
     networks:
       - junction-net
 
+  stock-prediction-service:
+    build:
+      context: ./stock_prediction
+    container_name: stock-prediction-service
+    ports:
+      - "8100:8000"
+    networks:
+      - junction-net
+
 networks:
   junction-net:
     driver: bridge
