@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valio Aimo NLU Parser Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .result-section {
+            margin-top: 30px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-loading {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .result-content {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .result-item {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .result-value {
+            color: #333;
+            font-size: 15px;
+            word-break: break-word;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+
+        .entity-list {
+            list-style: none;
+        }
+
+        .entity-item {
+            background: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .entity-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .entity-detail {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .json-view {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .api-config {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .api-config input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Valio Aimo NLU Parser Test</h1>
+        <p class="subtitle">Test the Natural Language Understanding API with text or voice transcripts</p>
+
+        <div class="api-config">
+            <label for="apiUrl">API Endpoint URL:</label>
+            <input type="text" id="apiUrl" value="http://localhost:5000/nlu/parse" placeholder="http://localhost:5000/nlu/parse">
+        </div>
+
+        <div class="input-section">
+            <label for="inputText">Enter text or voice transcript:</label>
+            <textarea id="inputText" placeholder="e.g., 'Yes, I'll accept the replacement milk' or 'Kyllä, hyväksyn korvauksen'"></textarea>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" id="parseBtn" onclick="parseText()">Parse Text</button>
+            <button class="btn-secondary" onclick="clearResults()">Clear</button>
+        </div>
+
+        <div class="result-section" id="resultSection" style="display: none;">
+            <div class="result-header">
+                <span class="result-title">Results</span>
+                <span class="status-badge" id="statusBadge">Ready</span>
+            </div>
+            <div class="result-content" id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL_DEFAULT = 'http://localhost:5000/nlu/parse';
+
+        async function parseText() {
+            const inputText = document.getElementById('inputText').value.trim();
+            const apiUrl = document.getElementById('apiUrl').value.trim() || API_URL_DEFAULT;
+            const parseBtn = document.getElementById('parseBtn');
+            const resultSection = document.getElementById('resultSection');
+            const resultContent = document.getElementById('resultContent');
+            const statusBadge = document.getElementById('statusBadge');
+
+            if (!inputText) {
+                alert('Please enter some text to parse');
+                return;
+            }
+
+            // Show loading state
+            parseBtn.disabled = true;
+            resultSection.style.display = 'block';
+            statusBadge.textContent = 'Loading...';
+            statusBadge.className = 'status-badge status-loading';
+            resultContent.innerHTML = '<div class="loading"><div class="spinner"></div>Processing your request...</div>';
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: inputText,
+                        session_id: 'web-test-' + Date.now()
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                // Display results
+                displayResults(data);
+                statusBadge.textContent = 'Success';
+                statusBadge.className = 'status-badge status-success';
+
+            } catch (error) {
+                statusBadge.textContent = 'Error';
+                statusBadge.className = 'status-badge status-error';
+                resultContent.innerHTML = `
+                    <div class="error-message">
+                        <strong>Error:</strong> ${error.message}<br><br>
+                        Make sure the NLU API server is running at ${apiUrl}
+                    </div>
+                `;
+            } finally {
+                parseBtn.disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            const resultContent = document.getElementById('resultContent');
+            const entities = data.parameters?.entities || {};
+            
+            let html = `
+                <div class="result-item">
+                    <div class="result-label">Intent</div>
+                    <div class="result-value">
+                        <strong>${data.intent}</strong>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${(data.confidence * 100)}%"></div>
+                        </div>
+                        <small style="color: #666;">Confidence: ${(data.confidence * 100).toFixed(1)}%</small>
+                    </div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">Language</div>
+                    <div class="result-value">${entities.language || 'Unknown'}</div>
+                </div>
+            `;
+
+            // Products
+            if (entities.products && entities.products.length > 0) {
+                html += `
+                    <div class="result-item">
+                        <div class="result-label">Products (${entities.products.length})</div>
+                        <ul class="entity-list">
+                `;
+                entities.products.forEach(product => {
+                    html += `
+                        <li class="entity-item">
+                            <div class="entity-name">${product.name || 'Unknown'}</div>
+                            <div class="entity-detail">
+                                GTIN: ${product.gtin || 'N/A'} | 
+                                Confidence: ${(product.confidence * 100).toFixed(0)}%
+                            </div>
+                        </li>
+                    `;
+                });
+                html += `</ul></div>`;
+            }
+
+            // Quantities
+            if (entities.quantities && entities.quantities.length > 0) {
+                html += `
+                    <div class="result-item">
+                        <div class="result-label">Quantities (${entities.quantities.length})</div>
+                        <ul class="entity-list">
+                `;
+                entities.quantities.forEach(qty => {
+                    html += `
+                        <li class="entity-item">
+                            <div class="entity-name">${qty.value} ${qty.unit}</div>
+                            <div class="entity-detail">Confidence: ${(qty.confidence * 100).toFixed(0)}%</div>
+                        </li>
+                    `;
+                });
+                html += `</ul></div>`;
+            }
+
+            // Sentiment
+            if (entities.sentiment) {
+                const sentiment = entities.sentiment;
+                const sentimentEmoji = {
+                    'positive': '😊',
+                    'negative': '😞',
+                    'neutral': '😐'
+                };
+                html += `
+                    <div class="result-item">
+                        <div class="result-label">Sentiment</div>
+                        <div class="result-value">
+                            ${sentimentEmoji[sentiment.polarity] || '😐'} ${sentiment.polarity}
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" style="width: ${(sentiment.confidence * 100)}%"></div>
+                            </div>
+                            <small style="color: #666;">Confidence: ${(sentiment.confidence * 100).toFixed(1)}%</small>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Urgency
+            if (entities.urgency) {
+                const urgency = entities.urgency;
+                const urgencyEmoji = {
+                    'high': '🔴',
+                    'medium': '🟡',
+                    'low': '🟢'
+                };
+                html += `
+                    <div class="result-item">
+                        <div class="result-label">Urgency</div>
+                        <div class="result-value">
+                            ${urgencyEmoji[urgency.level] || '🟢'} ${urgency.level}
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" style="width: ${(urgency.confidence * 100)}%"></div>
+                            </div>
+                            <small style="color: #666;">Confidence: ${(urgency.confidence * 100).toFixed(1)}%</small>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Timestamp
+            if (data.timestamp) {
+                html += `
+                    <div class="result-item">
+                        <div class="result-label">Timestamp</div>
+                        <div class="result-value">${new Date(data.timestamp).toLocaleString()}</div>
+                    </div>
+                `;
+            }
+
+            // Session ID
+            if (data.session_id) {
+                html += `
+                    <div class="result-item">
+                        <div class="result-label">Session ID</div>
+                        <div class="result-value">${data.session_id}</div>
+                    </div>
+                `;
+            }
+
+            // Full JSON (collapsible)
+            html += `
+                <div class="result-item">
+                    <div class="result-label">Full Response (JSON)</div>
+                    <div class="json-view">${JSON.stringify(data, null, 2)}</div>
+                </div>
+            `;
+
+            resultContent.innerHTML = html;
+        }
+
+        function clearResults() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('resultContent').innerHTML = '';
+        }
+
+        // Allow Enter key to submit (Ctrl+Enter or Cmd+Enter)
+        document.getElementById('inputText').addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                parseText();
+            }
+        });
+    </script>
+</body>
+</html>
+
