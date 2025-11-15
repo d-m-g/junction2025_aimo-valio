@@ -3,6 +3,9 @@ spring:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:6000/warehouse}
     username: ${SPRING_DATASOURCE_USERNAME:warehouse_user}
     password: ${SPRING_DATASOURCE_PASSWORD:warehouse_pass}
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
   jpa:
     hibernate:
       ddl-auto: none
