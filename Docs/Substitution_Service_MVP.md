@@ -11,6 +11,7 @@ When an item in an order is unavailable, the substitution service suggests good,
 **Input:**
 - Original product SKU that is short or out of stock
 - Optional: order context (customer, quantities)
+- Optional: warehouse inventory snapshot (JSON) to constrain suggestions to in‑stock items at the site fulfilling the order
 
 **Output:**
 - Top N recommended replacement SKUs
@@ -76,7 +77,7 @@ For the MVP we stay in classic ML world, no external LLMs:
 4. Serve recommendations via a small API  
    - Trained model and feature data loaded into a FastAPI service  
    - Endpoint `POST /recommend` accepts `{ "sku": "...", "k": 3 }`  
-   - Service generates candidate pool (e.g., all SKUs in same category), scores with model, returns top‑k
+   - Service generates candidate pool (e.g., all SKUs in same category), applies warehouse availability filters when provided, scores with model, returns top‑k
 
 ---
 
@@ -108,6 +109,7 @@ Notes:
 **Ranking:**
 - Score each candidate with the classifier’s probability of being chosen; return top‑k.
 - Tie‑break by higher name similarity and higher candidate popularity.
+- Apply a hard filter for availability: only candidates with available stock in the provided warehouse snapshot are considered (when the snapshot is supplied).
 
 **Evaluation:**
 - Hit@1 / Hit@3 on a held‑out slice of historical replacement pairs
@@ -118,7 +120,7 @@ Notes:
 ## How it connects to the rest of the system
 
 - Prediction service flags an item as likely missing  
-- n8n calls the substitution service with the original SKU  
+- n8n calls the substitution service with the original SKU and, when possible, the warehouse inventory snapshot for the fulfillment site  
 - Substitution service returns a ranked list of replacements  
 - These replacements are used by the AI agent in phone/SMS: “We suggest X instead of Y, do you accept?”
 
@@ -145,6 +147,7 @@ Later, the same service can be used in the ecommerce frontend to show “similar
 - Incorporate richer product attributes from JSON (allergens, dietary flags, temperature class) as features
 - Replace/augment TF‑IDF with embedding‑based similarity once Featherless or another embedding provider is added
 - Add customer segment context: “this customer usually accepts house brand” or “prefers lactose free”
+- Add integration with live warehouse/inventory API and enforce availability‑only substitutions by site and cutoff times
 
 ---
 
