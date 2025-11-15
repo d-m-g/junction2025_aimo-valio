@@ -1,4 +1,4 @@
 {
-  "clientName": "Anna",
-  "absentItem": "potato"
+  "from": { "lineId": 1, "qty": 5.0 },         
+  "to":   { "lineId": 13, "qty": 5.0 }
 }
