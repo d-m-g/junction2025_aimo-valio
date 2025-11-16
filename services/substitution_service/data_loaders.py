@@ -45,10 +45,7 @@ def load_product_data_json(
     Load product data JSON. Tries JSON Lines first, then array JSON.
     """
     file_path = _resolve_path(path_or_dir, DEFAULT_PRODUCT_JSON)
-    try:
-        df = pd.read_json(file_path, lines=True)
-    except ValueError:
-        df = pd.read_json(file_path)
+    df = pd.read_json(file_path)
     if usecols:
         existing = [c for c in usecols if c in df.columns]
         if existing:
