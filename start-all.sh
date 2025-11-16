@@ -115,7 +115,7 @@ start_services() {
     bash -c "cd /app/NLU && python -u app.py"
 
   start_process "Order Fulfilment API (:${ORDER_SERVICE_PORT})" \
-    bash -c "cd /opt/order && java -jar order_fulfilment_service.jar"
+    bash -c "cd /opt/order && java -jar order_fulfilment_service.jar --server.port=${ORDER_SERVICE_PORT}"
 }
 
 main() {
