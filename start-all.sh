@@ -122,7 +122,7 @@ main() {
   start_postgres
   ensure_database
   log "Seeding warehouse data (qty=500)"
-  python3 /analysis/seed_selected_products.py --qty 500 || {
+  python3 app/analysis/seed_selected_products.py --qty 500 || {
     log "Seeding failed"
     exit 1
   }
