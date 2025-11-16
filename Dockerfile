@@ -28,8 +28,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       build-essential \
       ca-certificates \
       curl \
-      git \
-      git-lfs \
       libpq-dev \
       openjdk-21-jre-headless \
       postgresql \
@@ -46,26 +44,25 @@ RUN PG_MAJOR=$(ls /etc/postgresql | head -n 1) && \
     echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/${PG_MAJOR}/main/pg_hba.conf && \
     echo "host all all ::/0 md5" >> /etc/postgresql/${PG_MAJOR}/main/pg_hba.conf
 
-COPY . /tmp/src
-RUN git -C /tmp/src lfs install && \
-    git -C /tmp/src lfs fetch --all && \
-    git -C /tmp/src lfs checkout
+COPY requirements.txt requirements.txt
+COPY stock_prediction/requirements.txt stock_prediction/requirements.txt
 
-RUN pip install --no-cache-dir -r /tmp/src/requirements.txt \
-    && pip install --no-cache-dir -r /tmp/src/stock_prediction/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir -r stock_prediction/requirements.txt
 
-RUN cp -r /tmp/src/services ./services && \
-    cp -r /tmp/src/stock_prediction ./stock_prediction && \
-    cp -r /tmp/src/warehouse-db ./warehouse-db && \
-    cp -r /tmp/src/Data ./Data && \
-    cp -r /tmp/src/Docs ./Docs && \
-    cp -r /tmp/src/analysis ./analysis && \
-    cp -r /tmp/src/training ./training && \
-    cp -r /tmp/src/models ./models && \
-    cp /tmp/src/selected_product.json ./selected_product.json
+COPY services ./services
+COPY stock_prediction ./stock_prediction
+COPY warehouse-db ./warehouse-db
+COPY Data ./Data
+COPY Docs ./Docs
+COPY analysis ./analysis
+COPY training ./training
+COPY models ./models
+COPY selected_product.json ./selected_product.json
 
 COPY --from=order_builder /tmp/order_fulfilment_service.jar /opt/order/order_fulfilment_service.jar
-RUN cp /tmp/src/start-all.sh /app/start-all.sh && chmod +x /app/start-all.sh
+COPY start-all.sh /app/start-all.sh
+RUN chmod +x /app/start-all.sh
 
 EXPOSE 8000 8100 5432
 
