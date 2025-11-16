@@ -253,9 +253,11 @@ def test_order_fulfilment_create_and_events():
         "POST",
         f"{ORDER_BASE}/api/orders",
         json_payload=SAMPLE_ORDER,
-        expected_status=202,
-    )
-    assert create_resp.status_code == 202
+        expected_status=200,
+    ).json()
+    assert create_resp["orderId"] == SAMPLE_ORDER["order_id"]
+    assert "items" in create_resp
+    assert "shortages" in create_resp
 
     pick_payload = {
         "orderId": SAMPLE_ORDER["order_id"],
@@ -269,9 +271,31 @@ def test_order_fulfilment_create_and_events():
         "POST",
         f"{ORDER_BASE}/api/orders/events/pick-shortage",
         json_payload=pick_payload,
-        expected_status=501,
+        expected_status=200,
     ).json()
-    assert pick_resp["endpoint"].endswith("pick-shortage")
+    assert pick_resp["orderId"] == pick_payload["orderId"]
+    assert pick_resp["lineId"] == pick_payload["lineId"]
+    assert pick_resp["action"] in {"KEEP", "REPLACE", "DELETE"}
+    assert "replacements" in pick_resp
+
+    shortage_payload = {
+        "items": [
+            {
+                "from": {
+                    "lineId": pick_payload["lineId"],
+                    "qty": pick_payload["expectedQty"],
+                }
+            }
+        ]
+    }
+    shortage_resp = request_with_retry(
+        "POST",
+        f"{ORDER_BASE}/api/orders/shortage/proactive-call",
+        json_payload=shortage_payload,
+        expected_status=200,
+    ).json()
+    assert "decisions" in shortage_resp
+    assert shortage_resp["decisions"][0]["lineId"] == pick_payload["lineId"]
 
     claim_payload = {
         "orderId": SAMPLE_ORDER["order_id"],

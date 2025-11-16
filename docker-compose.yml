@@ -17,7 +17,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: warehouse_pass
       PREDICT_ORDER_URL: http://localhost:8100/predict/order
       SUBSTITUTION_SERVICE_URL: http://localhost:8000/substitution/suggest
-      SHORTAGE_SERVICE_URL: http://host.docker.internal:8083/shortage/proactive-call
+      SHORTAGE_SERVICE_URL: http://localhost:8080/api/orders/shortage/proactive-call
       WAREHOUSE_DB_HOST: localhost
       WAREHOUSE_DB_PORT: 5432
       WAREHOUSE_DB_NAME: warehouse

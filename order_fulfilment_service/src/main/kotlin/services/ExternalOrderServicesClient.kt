@@ -40,9 +40,10 @@ class ExternalOrderServicesClient(
     fun getSubstitutionsForItem(
         lineId: Int,
         productCode: String,
-        qty: Double
+        qty: Double,
+        name: String?
     ): SubstitutionResponse {
-        val request = SubstitutionRequest(lineId, productCode, qty)
+        val request = SubstitutionRequest(lineId, productCode, qty, name)
 
         return try {
             restTemplate.postForObject(

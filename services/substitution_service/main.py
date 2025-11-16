@@ -10,6 +10,10 @@ from .availability import get_line_ids_for_gtins
 
 class SuggestRequest(BaseModel):
     sku: str = Field(..., min_length=1, description="Original product SKU that is short or out of stock")
+    name: Optional[str] = Field(
+        default=None,
+        description="Optional human-readable name for the SKU (used to improve matching when GTIN lookup fails)",
+    )
     k: int = Field(3, ge=1, le=20, description="Number of replacement suggestions to return")
     context: Optional[Dict[str, Any]] = Field(
         default=None,
@@ -43,6 +47,7 @@ class OrderSubstitutionRequest(BaseModel):
     lineId: int
     productCode: str
     qty: float
+    name: Optional[str] = None
 
 
 class OrderSubstitutionResponse(BaseModel):
@@ -118,6 +123,7 @@ def suggest_substitutions_debug(request: SuggestRequest) -> SuggestResponse:
         k=request.k,
         available_qty_by_code=avail_map,
         required_qty=request.requiredQty,
+        fallback_name=request.name,
     )
     recs: List[Recommendation] = []
     for cand_gtin, score, cand in scored:
@@ -151,6 +157,7 @@ def suggest_substitutions(request: OrderSubstitutionRequest) -> OrderSubstitutio
         k=3,
         available_qty_by_code=None,
         required_qty=request.qty,
+        fallback_name=request.name,
     )
     # Map recommended GTINs to warehouse line_ids
     gtins = [_normalize_id(g) or g for (g, _score, _cand) in scored]

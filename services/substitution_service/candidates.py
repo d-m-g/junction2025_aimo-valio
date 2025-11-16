@@ -1,12 +1,15 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Set
 
 import math
+from functools import lru_cache
+
 import pandas as pd
 
 from .features import compute_pair_features
 from .data_loaders import product_data_df
+from .utils_text import simple_tokenize, jaccard_similarity
 # Heuristic-only scorer (model intentionally not used for MVP)
 
 
@@ -78,13 +81,17 @@ def suggest_candidates_by_gtin(
     max_pool: int = 500,
     available_qty_by_code: Optional[Dict[str, float]] = None,
     required_qty: Optional[float] = None,
+    fallback_name: Optional[str] = None,
 ) -> Tuple[Dict[str, Any], List[Tuple[str, float, Dict[str, Any]]]]:
     """
     Returns:
       original_product, list of (candidate_gtin, score, candidate_row_dict)
     """
     products = product_data_df()
-    orig = _select_by_gtin(products, _normalize_id(sku) or sku)
+    normalized_sku = _normalize_id(sku) or sku
+    orig = _select_by_gtin(products, normalized_sku)
+    if (not orig) and fallback_name:
+        orig = _select_by_name(products, fallback_name)
     if orig is None:
         return {}, []
 
@@ -117,6 +124,9 @@ def suggest_candidates_by_gtin(
             # Lazy import to avoid hard dependency if DB not used
             from .availability import get_availability_for_gtins  # type: ignore
             available_qty_by_code = get_availability_for_gtins(cand_gtins)
+            if not available_qty_by_code:
+                # Treat empty map the same as no availability snapshot so we don't reject every candidate.
+                available_qty_by_code = None
         except Exception:
             available_qty_by_code = None
 
@@ -146,5 +156,73 @@ def suggest_candidates_by_gtin(
     # Sort and take top-k
     scored.sort(key=lambda x: x[1], reverse=True)
     return orig, scored[:k]
+
+
+def _collect_candidate_names(product: Dict[str, Any]) -> List[str]:
+    names: List[str] = []
+    synkka = product.get("synkkaData")
+    if isinstance(synkka, dict):
+        entries = synkka.get("names")
+        if isinstance(entries, list):
+            for entry in entries:
+                if isinstance(entry, dict):
+                    value = entry.get("value")
+                    if isinstance(value, str) and value:
+                        names.append(value)
+    vendor = product.get("vendorName")
+    if isinstance(vendor, str) and vendor:
+        names.append(vendor)
+    brand = product.get("brand")
+    if isinstance(brand, str) and brand:
+        names.append(brand)
+    return names
+
+
+def _name_tokens(product: Dict[str, Any]) -> Set[str]:
+    tokens: Set[str] = set()
+    for text in _collect_candidate_names(product):
+        tokens |= simple_tokenize(text)
+    return tokens
+
+
+def _normalize_token_key(name: str) -> Optional[Tuple[str, ...]]:
+    tokens = sorted(simple_tokenize(name))
+    if not tokens:
+        return None
+    return tuple(tokens)
+
+
+@lru_cache(maxsize=2048)
+def _lookup_gtin_by_tokens(token_key: Tuple[str, ...]) -> Optional[str]:
+    df = product_data_df()
+    target = set(token_key)
+    best_score = 0.0
+    best_gtin: Optional[str] = None
+    for _, row in df.iterrows():
+        product = row.to_dict()
+        tokens = _name_tokens(product)
+        if not tokens:
+            continue
+        score = jaccard_similarity(target, tokens)
+        if score > best_score:
+            candidate_gtin = _normalize_id(product.get("salesUnitGtin")) or _normalize_id(
+                (product.get("synkkaData") or {}).get("gtin")
+            )
+            if candidate_gtin:
+                best_score = score
+                best_gtin = candidate_gtin
+    if best_score < 0.2:
+        return None
+    return best_gtin
+
+
+def _select_by_name(df: pd.DataFrame, name: str) -> Optional[Dict[str, Any]]:
+    token_key = _normalize_token_key(name)
+    if token_key is None:
+        return None
+    gtin = _lookup_gtin_by_tokens(token_key)
+    if not gtin:
+        return None
+    return _select_by_gtin(df, gtin)
 
 

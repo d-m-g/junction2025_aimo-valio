@@ -3,9 +3,13 @@ package org.example.services
 import org.example.dto.OrderEntity
 import org.example.dto.OrderItemDto
 import org.example.dto.OrderItemEntity
+import org.example.dto.OrderProcessingResponse
+import org.example.dto.ProcessedOrderItem
 import org.example.dto.ProductDto
+import org.example.dto.ReplacementDescriptor
 import org.example.dto.ShortageAction
 import org.example.dto.ShortageDecision
+import org.example.dto.ShortageDecisionResponse
 import org.example.dto.ShortageItemRequest
 import org.example.dto.ShortageLine
 import org.example.dto.ShortageProactiveRequest
@@ -25,7 +29,7 @@ class OrderService(
     private val logger = LoggerFactory.getLogger(OrderService::class.java)
 
     @Transactional
-    fun saveOrder(order: ProductDto) {
+    fun saveOrder(order: ProductDto): OrderProcessingResponse {
         logger.info(
             "Processing order {} with {} items (customerId={})",
             order.orderId,
@@ -50,7 +54,8 @@ class OrderService(
             val substitutionResponse = externalClient.getSubstitutionsForItem(
                 lineId = item.lineId,
                 productCode = item.productCode,
-                qty = item.qty
+                qty = item.qty,
+                name = item.name
             )
 
             substitutionsMap[lineId] = substitutionResponse.suggestedLineIds
@@ -78,6 +83,7 @@ class OrderService(
         )
 
         // 4. Собираем финальный список items, подтягивая замену из склада по id
+        val replacementOptions: MutableMap<Int, MutableList<WarehouseItem>> = mutableMapOf()
         val finalItems: List<OrderItemDto> = order.items.mapNotNull { item ->
             val decision = decisionsByLineId[item.lineId]
 
@@ -90,6 +96,17 @@ class OrderService(
                     val replacementIds = substitutionsMap[item.lineId]
                     val replacementId = replacementIds?.firstOrNull()
 
+                    if (replacementIds != null) {
+                        val options = replacementOptions.getOrPut(item.lineId) { mutableListOf() }
+                        replacementIds.forEach { candId ->
+                            val candidate = warehouseItemsById[candId]
+                                ?: warehouseItemRepository.findById(candId).orElse(null)?.also {
+                                    warehouseItemsById[candId] = it
+                                }
+                            candidate?.let { options.add(it) }
+                        }
+                    }
+
                     if (replacementId != null) {
                         val replacement = warehouseItemsById[replacementId]
                             ?: warehouseItemRepository.findById(replacementId).orElse(null)?.also {
@@ -99,24 +116,17 @@ class OrderService(
                         if (replacement != null) {
                             val newQty = decision.replacementQty ?: item.qty
 
-                            item.copy(
+                            return@mapNotNull item.copy(
                                 productCode = replacement.productCode,
                                 name = replacement.name,
                                 unit = replacement.unit,
                                 qty = newQty
                             )
-                        } else {
-                            logger.warn(
-                                "Replacement {} requested for line {} but not found. Keeping original item.",
-                                replacementId,
-                                item.lineId
-                            )
-                            item
                         }
-                    } else {
-                        logger.info("No replacement ID for line {}, keeping original item", item.lineId)
-                        item
                     }
+
+                    logger.info("No usable replacement for line {}, keeping original item", item.lineId)
+                    item
                 }
             }
         }
@@ -130,6 +140,32 @@ class OrderService(
             "Order {} persisted with {} final items",
             order.orderId,
             finalItems.size
+        )
+
+        return OrderProcessingResponse(
+            orderId = order.orderId,
+            items = finalItems.map { dto ->
+                ProcessedOrderItem(
+                    lineId = dto.lineId,
+                    productCode = dto.productCode,
+                    name = dto.name,
+                    qty = dto.qty,
+                    unit = dto.unit
+                )
+            },
+            shortages = decisionsByLineId.map { (lineId, decision) ->
+                ShortageDecisionResponse(
+                    lineId = lineId,
+                    action = decision.action,
+                    replacements = replacementOptions[lineId]?.map { warehouseItem ->
+                        ReplacementDescriptor(
+                            productCode = warehouseItem.productCode,
+                            name = warehouseItem.name,
+                            unit = warehouseItem.unit
+                        )
+                    } ?: emptyList()
+                )
+            }
         )
     }
 
@@ -151,7 +187,8 @@ class OrderService(
                 productCode = itemDto.productCode,
                 name = itemDto.name,
                 qty = itemDto.qty.toBigDecimal(),
-                unit = itemDto.unit
+                unit = itemDto.unit,
+                shortPick = false
             )
         }
 

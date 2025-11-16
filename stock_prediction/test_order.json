@@ -11,31 +11,31 @@
     "items": [
       {
         "line_id": 1,
-        "product_code": "409510",
-        "name": "Atria jauheliha 1kg",
+        "product_code": "6407850050058",
+        "name": "Mestari Forsman Lasagne 3kg",
         "qty": 5.0,
-        "unit": "ST"
+        "unit": "RAS"
       },
       {
         "line_id": 2,
-        "product_code": "400122",
-        "name": "Valio maito 1L",
-        "qty": 10.0,
-        "unit": "BOT"
+        "product_code": "6407850051093",
+        "name": "Mestari Forsman Vegetable Lasagne 3kg",
+        "qty": 6.0,
+        "unit": "RAS"
       },
       {
         "line_id": 3,
-        "product_code": "404279",
-        "name": "Arla juusto 500g",
+        "product_code": "6407850051833",
+        "name": "Mestari Forsman Pasta Carbonara 3kg",
         "qty": 3.0,
-        "unit": "PAK"
+        "unit": "ST"
       }, 
       {
         "line_id": 4,
-        "product_code": "148854228",
-        "name": "Coop lager",
+        "product_code": "6407850056142",
+        "name": "Atria Spinach Pancake 2.5kg",
         "qty": 228.0,
-        "unit": "BOT"
+        "unit": "ST"
       }
     ]
   }

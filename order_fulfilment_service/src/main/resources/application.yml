@@ -14,7 +14,7 @@ spring:
 external-services:
   predict-order-url: ${PREDICT_ORDER_URL:http://localhost:8081/predict/order}
   substitution-suggest-url: ${SUBSTITUTION_SERVICE_URL:http://localhost:8000/substitution/suggest}
-  shortage-url: ${SHORTAGE_SERVICE_URL:http://localhost:8083/shortage/proactive-call}
+  shortage-url: ${SHORTAGE_SERVICE_URL:http://localhost:8080/api/orders/shortage/proactive-call}
 
 app:
   cors:

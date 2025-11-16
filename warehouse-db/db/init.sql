@@ -17,8 +17,12 @@ CREATE TABLE IF NOT EXISTS order_items (
     product_code    VARCHAR(50) NOT NULL,
     name            VARCHAR(255) NOT NULL,
     qty             NUMERIC(12, 2) NOT NULL,
-    unit            VARCHAR(10) NOT NULL
+    unit            VARCHAR(10) NOT NULL,
+    short_pick      BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+ALTER TABLE order_items
+    ADD COLUMN IF NOT EXISTS short_pick BOOLEAN NOT NULL DEFAULT FALSE;
 
 CREATE TABLE IF NOT EXISTS warehouse_items (
     line_id      INT PRIMARY KEY,           -- тех. ID товара на складе
@@ -57,10 +61,10 @@ INSERT INTO order_items (
 ) VALUES (
     '10000000',
     1,
-    '409510',
-    'Atria jauheliha 1kg',
+    '6407850050058',
+    'Mestari Forsman Lasagne 3kg',
     5.0,
-    'ST'
+    'RAS'
 ) ON CONFLICT DO NOTHING;
 
 

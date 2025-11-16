@@ -75,5 +75,8 @@ class OrderItemEntity(
     var qty: BigDecimal = BigDecimal.ZERO,
 
     @Column(name = "unit", nullable = false)
-    var unit: String = ""
+    var unit: String = "",
+
+    @Column(name = "short_pick", nullable = false)
+    var shortPick: Boolean = false
 )

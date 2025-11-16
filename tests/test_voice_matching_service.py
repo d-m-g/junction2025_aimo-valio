@@ -148,17 +148,17 @@ def test_match_with_partial_name_similarity(client, monkeypatch):
             "items": [
                 {
                     "lineId": 10,
-                    "productCode": "409510",
-                    "name": "Atria ground beef 1kg pack",
+                    "productCode": "6407850050058",
+                    "name": "Mestari Forsman Lasagne 3kg",
                     "qty": 5,
-                    "unit": "ST",
+                    "unit": "RAS",
                 },
                 {
                     "lineId": 11,
-                    "productCode": "123456",
-                    "name": "Valio Oat Milk",
+                    "productCode": "6407850051093",
+                    "name": "Mestari Forsman Vegetable Lasagne 3kg",
                     "qty": 2,
-                    "unit": "ST",
+                    "unit": "RAS",
                 },
             ],
         },
@@ -177,8 +177,8 @@ def test_match_with_partial_name_similarity(client, monkeypatch):
 
 def test_lookup_line_id_endpoint_returns_best_match(client, monkeypatch):
     samples = [
-        {"line_id": 200, "product_code": "123456", "name": "Valio oat milk 1l"},
-        {"line_id": 55, "product_code": "409510", "name": "Atria ground beef 1kg pack"},
+        {"line_id": 200, "product_code": "6407850051093", "name": "Mestari Forsman Vegetable Lasagne 3kg"},
+        {"line_id": 55, "product_code": "6407850050058", "name": "Mestari Forsman Lasagne 3kg"},
     ]
 
     monkeypatch.setattr(

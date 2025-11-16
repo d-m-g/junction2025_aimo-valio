@@ -2,7 +2,11 @@ package org.example.controller
 
 import org.example.dto.CreateClaimRequest
 import org.example.dto.PickShortageEventRequest
+import org.example.dto.PickShortageEventResponse
+import org.example.dto.ShortageProactiveRequest
+import org.example.dto.ShortageProactiveResponse
 import org.example.dto.StubDescriptionResponse
+import org.example.services.ShortageWorkflowService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -12,40 +16,37 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/orders")
-class OrderEventsController {
+class OrderEventsController(
+    private val shortageWorkflowService: ShortageWorkflowService
+) {
 
     /**
-     * SEPARATE flow: triggered when a picker detects a shortage during picking.
-     * Implementation should:
-     *  1. Flag the related order line as short_pick to persist the shortage fact.
-     *  2. Call Substitution Service to request replacement options.
-     *  3. Notify Communication Orchestrator so the customer can be contacted in real time.
+     * Triggered when a picker detects a shortage during picking.
+     * Flags the order line, proposes replacements and notifies downstream services.
      */
     @PostMapping("/events/pick-shortage")
     fun registerPickShortageEvent(
         @RequestBody payload: PickShortageEventRequest
-    ): ResponseEntity<StubDescriptionResponse> {
-        val description = listOf(
-            "Mark order line #${payload.lineId} as short_pick so the shortage is recorded.",
-            "Query Substitution Service for replacements for product ${payload.productCode}.",
-            "Trigger Communication Orchestrator to contact the customer during picking."
-        )
+    ): ResponseEntity<PickShortageEventResponse> {
+        val response = shortageWorkflowService.handlePickerShortage(payload)
+        return ResponseEntity.ok(response)
+    }
 
-        return ResponseEntity
-            .status(HttpStatus.NOT_IMPLEMENTED)
-            .body(
-                StubDescriptionResponse(
-                    endpoint = "/api/orders/events/pick-shortage",
-                    description = description
-                )
-            )
+    /**
+     * Local implementation of the shortage decision API that would normally be provided
+     * by an external service. Produces KEEP / REPLACE / DELETE recommendations.
+     */
+    @PostMapping("/shortage/proactive-call")
+    fun proactiveShortageDecisions(
+        @RequestBody request: ShortageProactiveRequest
+    ): ResponseEntity<ShortageProactiveResponse> {
+        val response = shortageWorkflowService.decideShortages(request)
+        return ResponseEntity.ok(response)
     }
 
     /**
      * Claim creation after delivery (invoked by Communication Orchestrator or NLU).
-     * Implementation should:
-     *  1. Call Multimodal Evidence Service when attachments (photos, etc.) must be validated.
-     *  2. Decide on the claim outcome and trigger Compensation or other flows if required.
+     * Still returns a stub payload describing the work to be implemented.
      */
     @PostMapping("/claims/create")
     fun createClaim(

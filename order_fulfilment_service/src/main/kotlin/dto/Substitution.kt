@@ -3,7 +3,8 @@ package org.example.dto
 data class SubstitutionRequest(
     val lineId: Int,
     val productCode: String,
-    val qty: Double
+    val qty: Double,
+    val name: String? = null
 )
 
 data class SubstitutionResponse(

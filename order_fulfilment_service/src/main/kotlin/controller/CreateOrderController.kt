@@ -1,6 +1,7 @@
 package org.example.controller
 
 import org.example.dto.ProductDto
+import org.example.dto.OrderProcessingResponse
 import org.example.services.OrderService
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -26,15 +27,15 @@ class CreateOrderController(
     private val logger = LoggerFactory.getLogger(CreateOrderController::class.java)
 
     @PostMapping
-    fun createOrder(@RequestBody payload: ProductDto): ResponseEntity<Void> {
+    fun createOrder(@RequestBody payload: ProductDto): ResponseEntity<OrderProcessingResponse> {
         logger.info(
             "Received create order request: orderId={}, customerId={}, items={}",
             payload.orderId,
             payload.customerId,
             payload.items.size
         )
-        orderService.saveOrder(payload)
+        val response = orderService.saveOrder(payload)
         logger.info("Order {} processed successfully", payload.orderId)
-        return ResponseEntity.accepted().build()
+        return ResponseEntity.ok(response)
     }
 }

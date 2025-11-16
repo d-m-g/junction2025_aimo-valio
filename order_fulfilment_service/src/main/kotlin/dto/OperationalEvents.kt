@@ -32,3 +32,20 @@ data class StubDescriptionResponse(
     val status: String = "NOT_IMPLEMENTED",
     val description: List<String>
 )
+
+data class PickShortageEventResponse(
+    val orderId: String,
+    val lineId: Int,
+    val shortageQty: Double,
+    val action: ShortageAction,
+    val replacements: List<ReplacementCandidateDto>,
+    val notifications: List<String> = emptyList()
+)
+
+data class ReplacementCandidateDto(
+    val lineId: Int,
+    val productCode: String,
+    val name: String,
+    val availableQty: Double,
+    val unit: String
+)
